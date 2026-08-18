@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Maker</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        header {
+            background: white;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #4f46e5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 45px auto;
+            padding: 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            color: #666;
+            font-size: 17px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.07);
+        }
+
+        .upload-box {
+            border: 2px dashed #b8b8b8;
+            border-radius: 15px;
+            padding: 55px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .upload-box:hover {
+            border-color: #4f46e5;
+            background: #f8f7ff;
+        }
+
+        .upload-icon {
+            font-size: 55px;
+            margin-bottom: 15px;
+        }
+
+        .upload-box h2 {
+            margin-bottom: 8px;
+        }
+
+        .upload-box p {
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border: none;
+            background: #4f46e5;
+            color: white;
+            padding: 13px 25px;
+            border-radius: 9px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: #4338ca;
+        }
+
+        .btn.secondary {
+            background: #e5e7eb;
+            color: #222;
+        }
+
+        .btn.secondary:hover {
+            background: #d1d5db;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        .photos-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .photos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
+        }
+
+        .photo-card {
+            background: #f8f9fc;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .photo-number {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #ef4444;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            margin-top: 15px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 30px;
+        }
+
+        @media(max-width: 600px) {
+            header {
+                padding: 15px 20px;
+            }
+
+            .container {
+                margin: 20px auto;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">PDF<span>Maker</span></div>
+</header>
+
+<div class="container">
+
+    <div class="hero">
+        <h1>Image to PDF</h1>
+        <p>Convert your images into a PDF quickly and easily.</p>
+    </div>
+
+    <div class="card">
+
+        <!-- Hidden file input -->
+        <input
+            type="file"
+            id="imageInput"
+            accept="image/jpeg,image/png,image/webp,image/jpg"
+            multiple
+        >
+
+        <!-- Upload area -->
+        <div class="upload-box" id="uploadBox">
+
+            <div class="upload-icon">🖼️</div>
+
+            <h2>Add your photos</h2>
+
+            <p>
+                Select one or multiple images from your computer
+            </p>
+
+            <button class="btn" id="addPhotosBtn">
+                + Add Photos
+            </button>
+
+        </div>
+
+
+        <!-- Photos -->
+        <div class="photos-section" id="photosSection">
+
+            <div class="photos-header">
+
+                <h2>Your Photos</h2>
+
+                <button class="btn secondary" id="addMoreBtn">
+                    + Add More
+                </button>
+
+            </div>
+
+            <div class="photos-grid" id="photosGrid"></div>
+
+            <div class="actions">
+
+                <button class="btn" id="createPdfBtn">
+                    📄 Create PDF
+                </button>
+
+                <button class="btn secondary" id="clearBtn">
+                    Clear All
+                </button>
+
+            </div>
+
+            <div class="status" id="status"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    PDF Maker © 2026
+</footer>
+
+
+<script>
+
+    const imageInput = document.getElementById("imageInput");
+    const addPhotosBtn = document.getElementById("addPhotosBtn");
+    const addMoreBtn = document.getElementById("addMoreBtn");
+    const uploadBox = document.getElementById("uploadBox");
+
+    const photosSection = document.getElementById("photosSection");
+    const photosGrid = document.getElementById("photosGrid");
+
+    const createPdfBtn = document.getElementById("createPdfBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const status = document.getElementById("status");
+
+    let selectedImages = [];
+
+
+    // =========================
+    // OPEN FILE PICKER
+    // =========================
+
+    addPhotosBtn.addEventListener("click", function(event) {
+
+        event.stopPropagation();
+
+        imageInput.click();
+
+    });
+
+
+    addMoreBtn.addEventListener("click", function() {
+
+        imageInput.click();
+
+    });
+
+
+    uploadBox.addEventListener("click", function(event) {
+
+        if (event.target !== addPhotosBtn) {
+            imageInput.click();
+        }
+
+    });
+
+
+    // =========================
+    // SELECT IMAGES
+    // =========================
+
+    imageInput.addEventListener("change", function() {
+
+        const files = Array.from(this.files);
+
+        if (files.length === 0) {
+            return;
+        }
+
+        files.forEach(function(file) {
+
+            if (!file.type.startsWith("image/")) {
+                return;
+            }
+
+            const imageObject = {
+                file: file,
+                url: URL.createObjectURL(file)
+            };
+
+            selectedImages.push(imageObject);
+
+        });
+
+        renderPhotos();
+
+        // Reset input so the same image can be selected again
+        imageInput.value = "";
+
+    });
+
+
+    // =========================
+    // DISPLAY PHOTOS
+    // =========================
+
+    function renderPhotos() {
+
+        photosGrid.innerHTML = "";
+
+        if (selectedImages.length === 0) {
+
+            photosSection.style.display = "none";
+
+            return;
+
+        }
+
+        photosSection.style.display = "block";
+
+        selectedImages.forEach(function(image, index) {
+
+            const card = document.createElement("div");
+
+            card.className = "photo-card";
+
+            card.innerHTML = `
+                <img src="${image.url}" alt="Photo ${index + 1}">
+
+                <button
+                    class="remove-btn"
+                    onclick="removePhoto(${index})">
+                    ×
+                </button>
+
+                <div class="photo-number">
+                    Photo ${index + 1}
+                </div>
+            `;
+
+            photosGrid.appendChild(card);
+
+        });
+
+        status.innerText =
+            selectedImages.length +
+            (selectedImages.length === 1 ? " photo selected" : " photos selected");
+
+    }
+
+
+    // =========================
+    // REMOVE PHOTO
+    // =========================
+
+    function removePhoto(index) {
+
+        URL.revokeObjectURL(selectedImages[index].url);
+
+        selectedImages.splice(index, 1);
+
+        renderPhotos();
+
+    }
+
+
+    // =========================
+    // CLEAR ALL
+    // =========================
+
+    clearBtn.addEventListener("click", function() {
+
+        selectedImages.forEach(function(image) {
+
+            URL.revokeObjectURL(image.url);
+
+        });
+
+        selectedImages = [];
+
+        renderPhotos();
+
+        status.innerText = "";
+
+    });
+
+
+    // =========================
+    // CREATE PDF
+    // =========================
+
+    createPdfBtn.addEventListener("click", async function() {
+
+        if (selectedImages.length === 0) {
+
+            alert("Please add at least one photo.");
+
+            return;
+
+        }
+
+        createPdfBtn.disabled = true;
+
+        createPdfBtn.innerText = "Creating PDF...";
+
+        try {
+
+            const { jsPDF } = window.jspdf;
+
+            const pdf = new jsPDF({
+                orientation: "portrait",
+                unit: "mm",
+                format: "a4"
+            });
+
+
+            for (let i = 0; i < selectedImages.length; i++) {
+
+                const image = selectedImages[i];
+
+                const img = await loadImage(image.url);
+
+                const pageWidth = 210;
+                const pageHeight = 297;
+
+                const margin = 10;
+
+                const maxWidth = pageWidth - margin * 2;
+                const maxHeight = pageHeight - margin * 2;
+
+                let width = img.width;
+                let height = img.height;
+
+                const ratio = Math.min(
+                    maxWidth / width,
+                    maxHeight / height
+                );
+
+                width = width * ratio;
+                height = height * ratio;
+
+                const x = (pageWidth - width) / 2;
+                const y = (pageHeight - height) / 2;
+
+                if (i > 0) {
+
+                    pdf.addPage();
+
+                }
+
+                let format = "JPEG";
+
+                if (image.file.type === "image/png") {
+                    format = "PNG";
+                }
+
+                pdf.addImage(
+                    img,
+                    format,
+                    x,
+                    y,
+                    width,
+                    height
+                );
+
+            }
+
+
+            pdf.save("PDF-Maker.pdf");
+
+            status.innerText = "PDF created successfully!";
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Something went wrong while creating the PDF.");
+
+        }
+
+
+        createPdfBtn.disabled = false;
+
+        createPdfBtn.innerText = "📄 Create PDF";
+
+    });
+
+
+    // =========================
+    // LOAD IMAGE
+    // =========================
+
+    function loadImage(url) {
+
+        return new Promise(function(resolve, reject) {
+
+            const img = new Image();
+
+            img.onload = function() {
+
+                resolve(img);
+
+            };
+
+            img.onerror = function() {
+
+                reject(new Error("Unable to load image"));
+
+            };
+
+            img.src = url;
+
+        });
+
+    }
+
+</script>
+
+</body>
+</html>
